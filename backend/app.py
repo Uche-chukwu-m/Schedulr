@@ -1,12 +1,12 @@
 # from crypt import methods
 # import platform
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import datetime
 
 # App Setup
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend/dist", template_folder="../frontend/dist")
 CORS(app)
 
 # Database Setup
@@ -33,6 +33,11 @@ class Post(db.Model):
             'scheduled_time': self.scheduled_time,
             'status': self.status
         }
+
+@app.route('/')
+@app.route('/<path:path>')
+def index(path=None):
+    return render_template("index.html")
 
 # Test route to verify working
 @app.route('/api/test', methods=['GET'])
