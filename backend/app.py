@@ -1,10 +1,8 @@
-# from crypt import methods
-# import platform
-from flask import Flask, request, jsonify, render_template, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
 import datetime
 import os
+from flask import Flask, request, jsonify, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
 # App Setup
 app = Flask(__name__)
@@ -30,6 +28,7 @@ db = SQLAlchemy(app)
 # 'Post' table model
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(128), nullable=False) # firebase UID
     content = db.Column(db.Text, nullable=False)
     platform = db.Column(db.String(50), nullable=False)
     scheduled_time = db.Column(db.DateTime, nullable=False)
@@ -104,13 +103,13 @@ def get_posts():
             post.status = 'published'
     db.session.commit()
 
-    all_posts = Post.query.order_by(Post.scheduled_time.desc()).all()
+    all_posts = Post.query.order_by(getattr(Post, 'scheduled_time').desc()).all()
     return jsonify([post.to_json() for post in all_posts])
 
 @app.route('/api/posts', methods=['POST'])
 def create_post():
     data = request.get_json()
-    if not data or not 'content' in data or not 'platform' in data or not 'scheduled_time' in data:
+    if not data or 'content' not in data or 'platform' not in data or 'scheduled_time' not in data:
         return jsonify({'error': 'Missing data'}), 400
     
     # convert ISO format string from frontend back to datetime object
