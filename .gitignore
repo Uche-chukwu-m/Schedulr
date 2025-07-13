@@ -2,3 +2,4 @@
 .venv/
 backend/instance/*
 frontend/.gitignore
+DEPLOYMENT.md
