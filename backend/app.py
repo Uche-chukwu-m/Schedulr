@@ -1,12 +1,13 @@
 # from crypt import methods
 # import platform
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import datetime
+import os
 
 # App Setup
-app = Flask(__name__, static_folder="../frontend/dist", template_folder="../frontend/dist")
+app = Flask(__name__)
 CORS(app)
 
 # Database Setup
@@ -24,6 +25,12 @@ class Post(db.Model):
     scheduled_time = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String, nullable=False, default='scheduled')
 
+    def __init__(self, content, platform, scheduled_time, status='scheduled'):
+        self.content = content
+        self.platform = platform
+        self.scheduled_time = scheduled_time
+        self.status = status
+
     # this is a class method that returns the json of the post table contents
     def to_json(self):
         return {
@@ -37,7 +44,17 @@ class Post(db.Model):
 @app.route('/')
 @app.route('/<path:path>')
 def index(path=None):
-    return render_template("index.html")
+    # Serve the React app for all routes
+    return send_from_directory('../frontend/dist', 'index.html')
+
+# Serve static files from the dist folder
+@app.route('/assets/<path:filename>')
+def assets(filename):
+    return send_from_directory('../frontend/dist/assets', filename)
+
+@app.route('/vite.svg')
+def vite_svg():
+    return send_from_directory('../frontend/dist', 'vite.svg')
 
 # Test route to verify working
 @app.route('/api/test', methods=['GET'])
@@ -69,7 +86,8 @@ def create_post():
     new_post = Post(
         content=data['content'],
         platform=data['platform'],
-        scheduled_time=scheduled_time_obj
+        scheduled_time=scheduled_time_obj,
+        status='scheduled'
     )
     db.session.add(new_post)
     db.session.commit()
@@ -78,5 +96,7 @@ def create_post():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    # Use environment variable for port (Render requirement)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
 
