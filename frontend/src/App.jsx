@@ -3,7 +3,7 @@ import axios from 'axios';
 import PostForm from "./components/PostForm";
 import PostList from "./components/PostList";
 
-const API_URL = 'http://127.0.0.1:5000/api';
+const API_URL = '/api';
 
 function App() {
   const [posts, setPosts] = useState([]);
