@@ -1,68 +1,70 @@
-# Deployment Guide for Schedulr
+# Deployment Guide for Schedulr on Render
 
-## Deploying to Render
+## Issues Fixed
 
-### Prerequisites
-- A Render account
-- Your code pushed to a Git repository (GitHub, GitLab, etc.)
+1. **Static File Serving**: Updated Flask routes to handle cases where frontend dist folder doesn't exist
+2. **Database Configuration**: Properly configured PostgreSQL database connection
+3. **Health Check**: Added `/api/health` endpoint for debugging
+4. **Build Process**: Ensured proper build commands for both backend and frontend
 
-### Steps to Deploy
+## Deployment Steps
 
-1. **Connect your repository to Render:**
-   - Go to your Render dashboard
-   - Click "New +" and select "Web Service"
-   - Connect your Git repository
-   - Select the repository containing your Schedulr project
+1. **Create a new Web Service on Render**:
+   - Connect your GitHub repository
+   - Use the `render.yaml` configuration
 
-2. **Configure the deployment:**
-   - **Name:** `schedulr` (or your preferred name)
-   - **Environment:** `Python`
-   - **Build Command:** 
-     ```bash
-     pip install -r requirements.txt
-     cd frontend && npm install && npm run build
-     ```
-   - **Start Command:** 
-     ```bash
-     cd backend && python app.py
-     ```
+2. **Database Setup**:
+   - The `render.yaml` will automatically create a PostgreSQL database
+   - The `DATABASE_URL` environment variable will be automatically configured
 
-3. **Environment Variables (optional):**
-   - `PYTHON_VERSION`: `3.9.16`
+3. **Build Process**:
+   - Backend: Installs Python dependencies from `requirements.txt`
+   - Frontend: Installs npm packages and builds the React app
 
-4. **Deploy:**
-   - Click "Create Web Service"
-   - Render will automatically build and deploy your application
+## Troubleshooting
 
-### What was fixed
+### Bad Gateway Error
 
-The main issue you encountered was related to how Flask was serving the frontend files. The changes made:
+If you're still getting a "Bad Gateway" error:
 
-1. **Removed static folder configuration** from Flask app initialization
-2. **Added explicit routes** for serving static files with proper MIME types:
-   - `/assets/<filename>` for JavaScript and CSS files
-   - `/vite.svg` for the favicon
-   - Root route serves `index.html` for React routing
+1. **Check the logs** in your Render dashboard
+2. **Test the health endpoint**: Visit `https://your-app.onrender.com/api/health`
+3. **Test the basic endpoint**: Visit `https://your-app.onrender.com/api/test`
 
-3. **Updated production settings:**
-   - Uses environment variable for port (Render requirement)
-   - Disabled debug mode for production
-   - Added proper host binding
+### Common Issues
 
-### Alternative: Manual Deployment
+1. **Database Connection**: Make sure the PostgreSQL database is created and running
+2. **Build Failures**: Check if npm install or build commands are failing
+3. **Port Configuration**: The app uses the `PORT` environment variable (Render requirement)
 
-If you prefer to deploy manually without the `render.yaml` file:
+### Manual Database Setup
 
-1. Push your code to your repository
-2. In Render dashboard, create a new Web Service
-3. Use the build and start commands mentioned above
-4. Deploy
+If the automatic database creation doesn't work:
 
-### Troubleshooting
+1. Create a PostgreSQL database manually in Render
+2. Update the `DATABASE_URL` environment variable in your web service settings
+3. The connection string should look like: `postgresql://user:password@host:port/database`
 
-If you still encounter MIME type issues:
-1. Ensure the frontend is built (`npm run build` in frontend directory)
-2. Check that the `dist` folder contains the built files
-3. Verify the Flask routes are correctly serving the static files
+## Environment Variables
 
-The application should now work correctly on Render without MIME type errors! 
+- `PORT`: Automatically set by Render
+- `DATABASE_URL`: Automatically set when database is created
+- `PYTHON_VERSION`: Set to 3.9.16
+
+## Testing Locally
+
+To test the deployment locally:
+
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+python app.py
+
+# Frontend (in another terminal)
+cd frontend
+npm install
+npm run build
+```
+
+The app should be available at `http://localhost:5000` 
