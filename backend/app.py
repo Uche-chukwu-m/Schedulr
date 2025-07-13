@@ -11,7 +11,17 @@ app = Flask(__name__)
 CORS(app)
 
 # Database Setup
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+# Use PostgreSQL on Render, SQLite for local development
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Render provides DATABASE_URL for PostgreSQL
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Local development with SQLite
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -45,21 +55,43 @@ class Post(db.Model):
 @app.route('/<path:path>')
 def index(path=None):
     # Serve the React app for all routes
-    return send_from_directory('../frontend/dist', 'index.html')
+    frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
+    if os.path.exists(frontend_dist):
+        return send_from_directory(frontend_dist, 'index.html')
+    else:
+        # Fallback if frontend dist doesn't exist
+        return jsonify({'message': 'Backend is running! Frontend not built yet.'})
 
 # Serve static files from the dist folder
 @app.route('/assets/<path:filename>')
 def assets(filename):
-    return send_from_directory('../frontend/dist/assets', filename)
+    frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'assets')
+    if os.path.exists(frontend_dist):
+        return send_from_directory(frontend_dist, filename)
+    else:
+        return jsonify({'error': 'Assets not found'}), 404
 
 @app.route('/vite.svg')
 def vite_svg():
-    return send_from_directory('../frontend/dist', 'vite.svg')
+    frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
+    if os.path.exists(frontend_dist):
+        return send_from_directory(frontend_dist, 'vite.svg')
+    else:
+        return jsonify({'error': 'Vite SVG not found'}), 404
 
 # Test route to verify working
 @app.route('/api/test', methods=['GET'])
 def test():
     return jsonify({'message': 'Backend is running!'})
+
+@app.route('/api/health', methods=['GET'])
+def health():
+    try:
+        # Test database connection
+        db.session.execute(db.text('SELECT 1'))
+        return jsonify({'status': 'healthy', 'database': 'connected'})
+    except Exception as e:
+        return jsonify({'status': 'unhealthy', 'database': 'disconnected', 'error': str(e)}), 500
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
