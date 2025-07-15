@@ -30,8 +30,10 @@ function SchedulerDashboard(props) {
     };
 
     useEffect(() => {
-        fetchPosts();
-    }, []);
+        if (props.user){
+            fetchPosts();
+        }
+    }, [props.user]);
 
     const handlePostCreated = async (newPost) => {
         try {
