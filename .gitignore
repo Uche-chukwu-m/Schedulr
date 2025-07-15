@@ -6,4 +6,3 @@ frontend/.gitignore
 pack.json
 
 !README.md
-frontend/src/firebase.js
