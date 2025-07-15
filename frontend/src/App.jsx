@@ -7,7 +7,6 @@ import SchedulerDashboard from './components/SchedulerDashboard';
 
 function App() {
   const [user, setUser] = useState(null)
-  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,6 +31,10 @@ function App() {
       {
         user ? (
           // if user is logged in show dashboard and logout button
+          <Login/>
+
+        ) : (
+          // if user not logged in, show login
           <div>
             <nav className="p-4 flex justify-between items-center bg-gray-800">
               <p>Welcome, {user.email}</p>
@@ -39,9 +42,6 @@ function App() {
             </nav>
             <SchedulerDashboard user={user} />
           </div>
-        ) : (
-          // if user not logged in, show login
-          <Login/>
         )};
     </div>
   )};
