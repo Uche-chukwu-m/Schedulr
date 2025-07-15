@@ -95,21 +95,12 @@ def index(path=None):
 
 # Serve static files from the dist folder
 @app.route('/assets/<path:filename>')
-@check_auth
 def assets(filename):
     frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'assets')
     if os.path.exists(frontend_dist):
         return send_from_directory(frontend_dist, filename)
     else:
         return jsonify({'error': 'Assets not found'}), 404
-
-# @app.route('/vite.svg')
-# def vite_svg():
-#     frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
-#     if os.path.exists(frontend_dist):
-#         return send_from_directory(frontend_dist, 'vite.svg')
-#     else:
-#         return jsonify({'error': 'Vite SVG not found'}), 404
 
 # Test route to verify working
 @app.route('/api/test', methods=['GET'])
