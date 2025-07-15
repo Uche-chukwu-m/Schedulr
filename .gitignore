@@ -2,4 +2,7 @@
 .venv/
 backend/instance/*
 frontend/.gitignore
-DEPLOYMENT.md
+*.md
+pack.json
+
+!README.md
