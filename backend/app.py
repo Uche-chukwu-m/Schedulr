@@ -3,6 +3,31 @@ import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+import firebase_admin
+from firebase_admin import credentials, auth
+from functools import wraps
+from flask import g
+
+# Firebase Admin Credential setup
+cred = credentials.Certificate("../pack.json")
+firebase_admin.initialize_app(cred)
+
+def check_auth(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer'):
+            return jsonify({"error": "Authorization header missing or invalid"}), 401
+
+        id_token = auth_header.split(' ').pop()
+        try:
+            decoded_token = auth.verify_id_token(id_token)
+            g.user_id = decoded_token['uid']
+        except Exception as e:
+            return jsonify({"error": "Invalid token", "details": str(e)}), 401
+
+        return f(*args, **kwargs)
+    return decorated_function
 
 # App Setup
 app = Flask(__name__)
@@ -34,7 +59,8 @@ class Post(db.Model):
     scheduled_time = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String, nullable=False, default='scheduled')
 
-    def __init__(self, content, platform, scheduled_time, status='scheduled'):
+    def __init__(self,user_id, content, platform, scheduled_time, status='scheduled'):
+        self.user_id = user_id
         self.content = content
         self.platform = platform
         self.scheduled_time = scheduled_time
@@ -63,6 +89,7 @@ def index(path=None):
 
 # Serve static files from the dist folder
 @app.route('/assets/<path:filename>')
+@check_auth
 def assets(filename):
     frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'assets')
     if os.path.exists(frontend_dist):
@@ -70,13 +97,13 @@ def assets(filename):
     else:
         return jsonify({'error': 'Assets not found'}), 404
 
-@app.route('/vite.svg')
-def vite_svg():
-    frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
-    if os.path.exists(frontend_dist):
-        return send_from_directory(frontend_dist, 'vite.svg')
-    else:
-        return jsonify({'error': 'Vite SVG not found'}), 404
+# @app.route('/vite.svg')
+# def vite_svg():
+#     frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
+#     if os.path.exists(frontend_dist):
+#         return send_from_directory(frontend_dist, 'vite.svg')
+#     else:
+#         return jsonify({'error': 'Vite SVG not found'}), 404
 
 # Test route to verify working
 @app.route('/api/test', methods=['GET'])
@@ -94,6 +121,7 @@ def health():
 
 # --- Real ---
 @app.route('/api/posts', methods=['GET'])
+@check_auth
 def get_posts():
     # simulating scheduler -- will return to this
     now = datetime.datetime.utcnow()
@@ -107,6 +135,7 @@ def get_posts():
     return jsonify([post.to_json() for post in all_posts])
 
 @app.route('/api/posts', methods=['POST'])
+@check_auth
 def create_post():
     data = request.get_json()
     if not data or 'content' not in data or 'platform' not in data or 'scheduled_time' not in data:
@@ -116,6 +145,7 @@ def create_post():
     scheduled_time_obj = datetime.datetime.fromisoformat(data['scheduled_time']).replace(tzinfo=None)
 
     new_post = Post(
+        user_id = g.user_id,
         content=data['content'],
         platform=data['platform'],
         scheduled_time=scheduled_time_obj,
