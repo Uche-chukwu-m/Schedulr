@@ -118,7 +118,7 @@ def health():
 
 # --- Real ---
 @app.route('/api/posts', methods=['GET'])
-@check_auth
+# @check_auth
 def get_posts():
     # simulating scheduler -- will return to this
     now = datetime.datetime.utcnow()
@@ -132,7 +132,7 @@ def get_posts():
     return jsonify([post.to_json() for post in all_posts])
 
 @app.route('/api/posts', methods=['POST'])
-@check_auth
+# @check_auth
 def create_post():
     data = request.get_json()
     if not data or 'content' not in data or 'platform' not in data or 'scheduled_time' not in data:
