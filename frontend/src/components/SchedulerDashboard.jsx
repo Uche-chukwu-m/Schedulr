@@ -53,7 +53,9 @@ function SchedulerDashboard(props) {
     return (
         <div className="bg-gray-900 text-white min-h-screen p-8 justify-center">
             <h1 className="text-4xl font-bold mb-8">Schedulr</h1>
-            {loading ? (
+            {!props.user ? (
+                <p>Please log in to view your posts</p>
+            ) : loading ? (
                 <p>Loading posts ...</p>
             ) : (
                 <>
