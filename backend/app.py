@@ -1,5 +1,6 @@
 import datetime
 import os
+import json
 from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -8,6 +9,10 @@ from firebase_admin import credentials, auth
 from functools import wraps
 from flask import g
 
+# from render
+if 'RENDER' in os.environ:
+    service_account_info = json.loads(os.environ['FIREBASE_SERVICE_ACCOUNT_JSON'])
+    cred = credentials.Certificate(service_account_info)
 # Firebase Admin Credential setup
 cred = credentials.Certificate("../pack.json")
 firebase_admin.initialize_app(cred)
