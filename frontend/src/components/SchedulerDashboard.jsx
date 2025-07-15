@@ -10,6 +10,10 @@ function SchedulerDashboard(props) {
     const [loading, setLoading] = useState(true);
 
     const fetchPosts = async () => {
+        if (!props.user) {
+            console.error('fetchPosts called but not logged in');
+            return;
+        }
         try {
             const token = await props.user.getIdToken();
             const response = await axios.get(`${API_URL}/posts`, {
