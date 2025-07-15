@@ -3,7 +3,7 @@ import axios from "axios";
 import PostForm from "./PostForm";
 import PostList from "./PostList";
 
-const API_URL = "http://localhost:5000/api"; // Adjust as needed
+const API_URL = "/api"; // Adjust as needed
 
 function SchedulerDashboard(props) {
     const [posts, setPosts] = useState([]);
@@ -27,7 +27,6 @@ function SchedulerDashboard(props) {
 
     useEffect(() => {
         fetchPosts();
-        // eslint-disable-next-line
     }, []);
 
     const handlePostCreated = async (newPost) => {
