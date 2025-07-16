@@ -38,7 +38,7 @@ function SchedulerDashboard(props) {
     const handlePostCreated = async (newPost) => {
         try {
             const token = await props.user.getIdToken();
-            await axios.post(`${API_URL}/posts`, newPost, {
+            await axios.post(`${API_URL}/api/posts`, newPost, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
