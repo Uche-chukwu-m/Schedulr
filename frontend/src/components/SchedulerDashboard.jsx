@@ -3,7 +3,7 @@ import axios from "axios";
 import PostForm from "./PostForm";
 import PostList from "./PostList";
 
-const API_URL = "/api"; // Adjust as needed
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000"; // Adjust as needed
 
 function SchedulerDashboard(props) {
     const [posts, setPosts] = useState([]);
@@ -16,7 +16,7 @@ function SchedulerDashboard(props) {
         }
         try {
             const token = await props.user.getIdToken();
-            const response = await axios.get(`${API_URL}/posts`, {
+            const response = await axios.get(`${API_URL}/api/posts`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
