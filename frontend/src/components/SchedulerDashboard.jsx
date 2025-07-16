@@ -3,7 +3,7 @@ import axios from "axios";
 import PostForm from "./PostForm";
 import PostList from "./PostList";
 
-const API_URL = import.meta.env.VITE_API_URL; // Adjust as needed
+const API_URL = "https://schedulr-qir4.com"//import.meta.env.VITE_API_URL || "http://127.0.0.1:5000"; // Adjust as needed
 
 function SchedulerDashboard(props) {
     const [posts, setPosts] = useState([]);
