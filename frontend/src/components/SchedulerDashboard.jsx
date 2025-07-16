@@ -16,7 +16,7 @@ function SchedulerDashboard(props) {
         }
         try {
             const token = await props.user.getIdToken();
-            const response = await axios.get(`${API_URL}/api/posts`, {
+            const response = await axios.get('https://schedulr-qir4.onrender.com/api/posts', {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
