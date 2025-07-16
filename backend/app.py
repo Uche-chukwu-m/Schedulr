@@ -1,99 +1,86 @@
 import datetime
 import os
 import json
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, auth
 from functools import wraps
-from flask import g
 
 # Firebase Admin Credential setup
-# from render
 if 'RENDER' in os.environ:
     service_account_info = json.loads(os.environ['FIREBASE_SERVICE_ACCOUNT_JSON'])
     cred = credentials.Certificate(service_account_info)
-else: # from local
+else:
     cred = credentials.Certificate("../pack.json")
 firebase_admin.initialize_app(cred)
 
+# --- Auth Decorator ---
 def check_auth(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer'):
             return jsonify({"error": "Authorization header missing or invalid"}), 401
-
         id_token = auth_header.split(' ').pop()
         try:
             decoded_token = auth.verify_id_token(id_token)
             g.user_id = decoded_token['uid']
         except Exception as e:
             return jsonify({"error": "Invalid token", "details": str(e)}), 401
-
         return f(*args, **kwargs)
     return decorated_function
 
-# App Setup
+# --- App Setup ---
 app = Flask(__name__)
 CORS(app)
 
-# Database Setup
-# Use PostgreSQL on Render, SQLite for local development
 database_url = os.environ.get('DATABASE_URL')
 if database_url:
-    # Render provides DATABASE_URL for PostgreSQL
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 # else:
-#     # Local development with SQLite
 #     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-
-# Database model
-# 'Post' table model
+# --- Models ---
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(128), nullable=False) # firebase UID
+    user_id = db.Column(db.String(128), nullable=False)
     content = db.Column(db.Text, nullable=False)
     platform = db.Column(db.String(50), nullable=False)
     scheduled_time = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String, nullable=False, default='scheduled')
 
-    def __init__(self,user_id, content, platform, scheduled_time, status='scheduled'):
+    def __init__(self, user_id, content, platform, scheduled_time, status='scheduled'):
         self.user_id = user_id
         self.content = content
         self.platform = platform
         self.scheduled_time = scheduled_time
         self.status = status
 
-    # this is a class method that returns the json of the post table contents
     def to_json(self):
         return {
             'id': self.id,
             'content': self.content,
             'platform': self.platform,
-            'scheduled_time': self.scheduled_time,
+            'scheduled_time': self.scheduled_time.isoformat() + "Z",
             'status': self.status
         }
 
+# --- Public Routes ---
 @app.route('/')
 @app.route('/<path:path>')
 def index(path=None):
-    # Serve the React app for all routes
     frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
     if os.path.exists(frontend_dist):
         return send_from_directory(frontend_dist, 'index.html')
     else:
-        # Fallback if frontend dist doesn't exist
         return jsonify({'message': 'Backend is running! Frontend not built yet.'})
 
-# Serve static files from the dist folder
 @app.route('/assets/<path:filename>')
 def assets(filename):
     frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'assets')
@@ -102,7 +89,6 @@ def assets(filename):
     else:
         return jsonify({'error': 'Assets not found'}), 404
 
-# Test route to verify working
 @app.route('/api/test', methods=['GET'])
 def test():
     return jsonify({'message': 'Backend is running!'})
@@ -110,39 +96,28 @@ def test():
 @app.route('/api/health', methods=['GET'])
 def health():
     try:
-        # Test database connection
         db.session.execute(db.text('SELECT 1'))
         return jsonify({'status': 'healthy', 'database': 'connected'})
     except Exception as e:
         return jsonify({'status': 'unhealthy', 'database': 'disconnected', 'error': str(e)}), 500
 
-# --- Real ---
+# --- Protected API Routes ---
+# NOTE: For production, re-add @check_auth to these routes to require authentication
 @app.route('/api/posts', methods=['GET'])
-# @check_auth
+@check_auth
 def get_posts():
-    # simulating scheduler -- will return to this
-    now = datetime.datetime.utcnow()
-    scheduled_posts = Post.query.filter_by(status='scheduled').all()
-    for post in scheduled_posts:
-        if post.scheduled_time <= now:
-            post.status = 'published'
-    db.session.commit()
-
-    all_posts = Post.query.order_by(getattr(Post, 'scheduled_time').desc()).all()
-    return jsonify([post.to_json() for post in all_posts])
+    user_posts = Post.query.filter_by(user_id=g.user_id).order_by(getattr(Post, 'scheduled_time').desc()).all()
+    return jsonify([post.to_json() for post in user_posts])
 
 @app.route('/api/posts', methods=['POST'])
-# @check_auth
+@check_auth
 def create_post():
     data = request.get_json()
     if not data or 'content' not in data or 'platform' not in data or 'scheduled_time' not in data:
         return jsonify({'error': 'Missing data'}), 400
-    
-    # convert ISO format string from frontend back to datetime object
     scheduled_time_obj = datetime.datetime.fromisoformat(data['scheduled_time']).replace(tzinfo=None)
-
     new_post = Post(
-        user_id = g.user_id,
+        user_id=g.user_id,
         content=data['content'],
         platform=data['platform'],
         scheduled_time=scheduled_time_obj,
@@ -155,7 +130,6 @@ def create_post():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    # Use environment variable for port (Render requirement)
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=True)
 

@@ -21,7 +21,7 @@ function PostForm({ onPostCreated }){
 
         onPostCreated(newPost);
         setContent('');
-        setPlatform('Twitter');
+        setPlatform('');
         setScheduledTime('');
     };
 
@@ -55,6 +55,7 @@ function PostForm({ onPostCreated }){
                         onChange={(e => setPlatform(e.target.value))}
                         required
                     >
+                        <option value="" disabled>Select a Platform</option>
                         <option value="Twitter">Twitter</option>
                         <option value="Mastodon">Mastodon</option>
                         <option value="Instagram">Instagram</option>
@@ -69,7 +70,7 @@ function PostForm({ onPostCreated }){
                     <input 
                         id="scheduled_time" 
                         type="datetime-local" 
-                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-light focus:outline-none"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none"
                         value={scheduledTime}
                         onChange={(e) => setScheduledTime(e.target.value)}
                         required

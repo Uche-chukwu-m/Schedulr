@@ -41,7 +41,7 @@ function App() {
         ) : (
           // if user not logged in, show login
           <Login/>
-        )};
+        )}
     </div>
   )};
 

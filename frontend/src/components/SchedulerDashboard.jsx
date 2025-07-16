@@ -21,7 +21,7 @@ function SchedulerDashboard(props) {
                     Authorization: `Bearer ${token}`
                 }
             });
-            setPosts(response.data);
+            setPosts(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
             console.error("Error fetching posts:", error);
         } finally {
@@ -38,12 +38,12 @@ function SchedulerDashboard(props) {
     const handlePostCreated = async (newPost) => {
         try {
             const token = await props.user.getIdToken();
-            const response = await axios.post(`${API_URL}/posts`, newPost, {
+            await axios.post(`${API_URL}/posts`, newPost, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
-            setPosts(prevPosts => [response.data, ...prevPosts]);
+            fetchPosts();
         } catch (error) {
             console.error("Error creating post:", error);
             alert("Failed to create post. Check console for details.");
@@ -60,9 +60,11 @@ function SchedulerDashboard(props) {
             ) : (
                 <>
                     <PostForm onPostCreated={handlePostCreated} />
-                    <PostList posts={posts} />
                 </>
             )}
+            {loading && <p>Loading posts...</p>}
+            {!loading && posts && <PostList posts={posts} />}
+            {!loading && (!posts || posts.length === 0) && <p>No posts found. Schedule one!</p>}
         </div>
     );
 }
