@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000"; // Adju
 function SchedulerDashboard(props) {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
+    
 
     const fetchPosts = async () => {
         if (!props.user) {
@@ -50,6 +51,22 @@ function SchedulerDashboard(props) {
         }
     };
 
+    const handleDeletePost = async (deletedPostId) => {
+        try {
+            const token = await props.user.getIdToken();
+            await axios.delete(`${API_URL}/api/posts/${deletedPostId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            // setPosts(prevPosts => prevPosts.filter(post => post.id !== deletedPostId))
+            fetchPosts();
+        } catch (error) {
+            console.error("Error deleting post:", error)
+            alert("Failed to delete post. Check console for details.")
+        }
+    };
+
     return (
         <div className="bg-gray-900 text-white min-h-screen p-8 justify-center">
             <h1 className="text-4xl font-bold mb-8">Schedulr</h1>
@@ -62,9 +79,8 @@ function SchedulerDashboard(props) {
                     <PostForm onPostCreated={handlePostCreated} />
                 </>
             )}
-            {loading && <p>Loading posts...</p>}
-            {!loading && posts && <PostList posts={posts} />}
-            {!loading && (!posts || posts.length === 0) && <p>No posts found. Schedule one!</p>}
+            {!loading && posts && <PostList posts={posts} handleDeletePost={handleDeletePost} />}
+            {/* {!loading && (!posts || posts.length === 0) && <p>No posts found. Schedule one!</p>} */}
         </div>
     );
 }
