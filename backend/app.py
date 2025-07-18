@@ -41,8 +41,7 @@ if database_url:
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-# else:
-#     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -73,7 +72,7 @@ class Post(db.Model):
 
 # --- Public Routes ---
 @app.route('/')
-@app.route('/<path:path>')
+# @app.route('/<path:path>')
 def index(path=None):
     frontend_dist = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
     if os.path.exists(frontend_dist):
@@ -102,7 +101,6 @@ def health():
         return jsonify({'status': 'unhealthy', 'database': 'disconnected', 'error': str(e)}), 500
 
 # --- Protected API Routes ---
-# NOTE: For production, re-add @check_auth to these routes to require authentication
 @app.route('/api/posts', methods=['GET'])
 @check_auth
 def get_posts():
@@ -126,6 +124,22 @@ def create_post():
     db.session.add(new_post)
     db.session.commit()
     return jsonify(new_post.to_json()), 201
+
+@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
+@check_auth
+def delete_post(post_id):
+    post = Post.query.get(post_id)
+    if post:
+        if g.user_id == post.user_id:
+            db.session.delete(post)
+            db.session.commit()
+            return jsonify({'message': 'Post deleted successfully'}), 204
+        else:
+            return jsonify({'error': 'Forbidden, Not authorized to perform this action'}), 403
+    else:
+        return jsonify({'error': 'Not found, No post found with that ID'}), 404
+
+
 
 if __name__ == '__main__':
     with app.app_context():
