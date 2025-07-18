@@ -1,6 +1,6 @@
 import React from "react";
 
-const PostList = ({ posts = [] }) => {
+const PostList = ({ posts = [], handleDeletePost }) => {
     let scheduledPosts = [];
     let publishedPosts = [];
 
@@ -30,6 +30,7 @@ const PostList = ({ posts = [] }) => {
                                 <span className="bg-yellow-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
                                     Scheduled
                                 </span>
+                                <button className="bg-red-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full" onClick={handleDeletePost(post.id)}>Delete</button>
                             </div>
                         ))
                     )}
