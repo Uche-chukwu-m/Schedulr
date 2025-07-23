@@ -8,6 +8,8 @@ from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, auth
 from functools import wraps
+from sqlalchemy import and_
+from posting import post_to_platform
 
 load_dotenv()
 
@@ -141,7 +143,48 @@ def delete_post(post_id):
             return jsonify({'error': 'Forbidden, Not authorized to perform this action'}), 403
     else:
         return jsonify({'error': 'Not found, No post found with that ID'}), 404
+    
+@app.route('/api/tasks/process-due-posts', methods=['POST'])
+def process_due_posts():
+    auth_header = request.headers.get('Authorization')
+    expected_secret = os.environ.get('CRON_SECRET')
 
+    if not auth_header or auth_header != f'Bearer {expected_secret}':
+        return jsonify({'error': "Unauthorized"}), 401
+    
+    try:
+        now = datetime.datetime.utcnow()
+        posts_to_process = Post.query.filter(and_(
+            Post.status == 'scheduled',
+            Post.scheduled_time <= now
+        )).all()
+
+        if not posts_to_process:
+            return jsonify({"message": "No posts to publish."}), 200
+        
+        success_count = 0
+        failure_count = 0
+
+        for post in posts_to_process:
+            was_successful = post_to_platform(post.platform, post.content)
+
+            if was_successful:
+                post.status = 'published'
+                success_count += 1
+            else:
+                post.status = 'failed'
+                failure_count += 1
+        
+        db.session.commit()
+        return jsonify({
+            "message": "Processing complete",
+            "published": success_count,
+            "failed": failure_count
+        }), 200
+
+    except Exception as e:
+        print(f"Error during post processing: {str(e)}")
+        return jsonify({"error": "An Internal error occured."}), 500
 
 
 if __name__ == '__main__':
