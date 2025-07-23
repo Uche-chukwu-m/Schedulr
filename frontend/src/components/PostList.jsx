@@ -30,11 +30,12 @@ const PostList = ({ posts = [], handleDeletePost }) => {
                                 <span className="bg-yellow-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
                                     Scheduled
                                 </span>
-                                <button className="bg-red-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full" onClick={handleDeletePost(post.id)}>Delete</button>
+                                <span>
+                                <button className="bg-red-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full mx-9 cursor-pointer" onClick={() => handleDeletePost(post.id)}>Delete</button>
+                                </span>
                             </div>
                         ))
                     )}
-
                 </div>
             </section>
                 
