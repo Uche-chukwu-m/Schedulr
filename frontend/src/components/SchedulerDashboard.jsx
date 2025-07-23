@@ -59,7 +59,6 @@ function SchedulerDashboard(props) {
                     Authorization: `Bearer ${token}`
                 }
             });
-            // setPosts(prevPosts => prevPosts.filter(post => post.id !== deletedPostId))
             fetchPosts();
         } catch (error) {
             console.error("Error deleting post:", error)
@@ -68,8 +67,8 @@ function SchedulerDashboard(props) {
     };
 
     return (
-        <div className="bg-gray-900 text-white min-h-screen p-8 justify-center">
-            <h1 className="text-4xl font-bold mb-8">Schedulr</h1>
+        <div className="bg-gray-900 text-white min-h-screen p-8 justify-center min-w-[350px]">
+            <h1 className="text-4xl font-bold mb-8 roboto-slab-header flex items-center justify-center h-screen">Schedulr</h1>
             {!props.user ? (
                 <p>Please log in to view your posts</p>
             ) : loading ? (
