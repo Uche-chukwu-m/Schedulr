@@ -1,6 +1,7 @@
 import datetime
 import os
 import json
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_from_directory, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -8,12 +9,14 @@ import firebase_admin
 from firebase_admin import credentials, auth
 from functools import wraps
 
+load_dotenv()
+
 # Firebase Admin Credential setup
 if 'RENDER' in os.environ:
     service_account_info = json.loads(os.environ['FIREBASE_SERVICE_ACCOUNT_JSON'])
     cred = credentials.Certificate(service_account_info)
 else:
-    cred = credentials.Certificate("../pack.json")
+    cred = credentials.Certificate(os.path.join(os.path.dirname(__file__), '..', 'pack.json'))
 firebase_admin.initialize_app(cred)
 
 # --- Auth Decorator ---
@@ -145,5 +148,5 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=True)
 
