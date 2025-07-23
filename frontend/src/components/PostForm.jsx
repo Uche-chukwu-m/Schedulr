@@ -27,15 +27,15 @@ function PostForm({ onPostCreated }){
 
     return (
         <div className="bg-gray-800 p-4 rounded-lg justify-center">
-            <h2 className="text-2xl font-semibold text-white mb-4">Schedule a New Post</h2>
+            <h2 className="text-3xl font-semibold text-white mb-4 flex justify-center roboto-slab-header">Schedule a New Post</h2>
             <form onSubmit={handleSubmit}>
                 <div className="mb-4">
-                    <label htmlFor="content" className="block text-gray-300 text-sm font-bold mb-2">
-                        Post Content:
+                    <label htmlFor="content" className="flex text-gray-300 text-2xl font-bold mb-2 justify-center roboto-slab-header">
+                        Post Content
                     </label>
                     <textarea 
                         id="content" 
-                        className="shadow appearance-none border rounded w-full py-2 leading-tight text-gray-150"
+                        className="shadow appearance-none border rounded w-full p-3 leading-tight text-gray-300"
                         rows="4"
                         placeholder="What's on your mind?"
                         value={content}
@@ -45,12 +45,12 @@ function PostForm({ onPostCreated }){
                 </div>
 
                 <div className="mb-4">
-                    <label htmlFor="platform" className="block text-gray-300 text-sm font-bold mb-2">
+                    <label htmlFor="platform" className="flex justify-center roboto-slab-header text-gray-300 text-2xl font-bold mb-2">
                         Platform
                     </label>
                     <select 
                         id="platform"
-                        className="shadow appearance-none border rounded w-full py-2 leading-tight text-gray-700"
+                        className="shadow appearance-none border rounded w-full p-2 leading-tight text-gray-500"
                         value={platform}
                         onChange={(e => setPlatform(e.target.value))}
                         required
@@ -64,13 +64,13 @@ function PostForm({ onPostCreated }){
                     </select>
                 </div>
                 <div>
-                    <label htmlFor="scheduled_time" className="block text-gray-300 text-sm font-bold mb-2">
-                        Scheduled Time:
+                    <label htmlFor="scheduled_time" className="flex justify-center roboto-slab-header text-gray-300 text-2xl font-bold mb-2">
+                        Scheduled Time
                     </label>
                     <input 
                         id="scheduled_time" 
                         type="datetime-local" 
-                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none"
+                        className="shadow appearance-none border rounded w-full p-3 text-gray-400 leading-tight focus:outline-none"
                         value={scheduledTime}
                         onChange={(e) => setScheduledTime(e.target.value)}
                         required
