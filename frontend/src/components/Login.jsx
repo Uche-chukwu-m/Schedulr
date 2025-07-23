@@ -14,8 +14,7 @@ const Login = () => {
             await createUserWithEmailAndPassword(auth, email, password);
         } catch (err) {
             setError(err.message);
-        }
-        }
+        }}
     
     const handleSignIn = async (e) => {
         e.preventDefault();
@@ -27,15 +26,15 @@ const Login = () => {
         }};
     
     return (
-        <div className="bg-gray-50">
+        <div className="bg-gray-900">
             <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
                 <div className="max-w-[480px] w-full">
-                    <a href="javascript:void(0)"><img src="https://readymadeui.com/readymadeui.svg" alt="logo" className="w-40 mb-8 mx-auto block" />
-                    </a>
+                    {/* <a href="javascript:void(0)"><img src="" alt="logo" className="w-40 mb-8 mx-auto block" />
+                    </a> */}
 
                     <div className="p-6 sm:p-8 rounded-2xl bg-white border border-gray-200 shadow-sm">
-                        <h1 className="text-slate-900 text-center text-3xl font-semibold">Sign in</h1>
-                        <form className="mt-12 space-y-6">
+                        <h1 className="text-slate-900 text-center text-3xl font-semibold roboto-slab-header">Sign in to Schedulr</h1>
+                        <form className="mt-7 space-y-4">
                             <div>
                                 <label className="text-slate-900 text-sm font-medium mb-2 block">Email</label>
                                 <div className="relative flex items-center">
@@ -57,13 +56,12 @@ const Login = () => {
                                     </label>
                                 </div>
                             </div>
-
-                            <div className="!mt-12">
+                            <div className="!mt-4">
                                 <button type="button" className="w-full py-2 px-2 text-[15px] font-medium tracking-wide rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none cursor-pointer" onClick={handleSignIn}>
                                     Sign in
                                 </button>
                             </div>
-                            <div className="!mt-12">
+                            <div className="!mt-4">
                                 <button type="button" className="w-full py-2 px-2 text-[15px] font-medium tracking-wide rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none cursor-pointer" onClick={handleSignUp}>
                                     Sign up
                                 </button>
