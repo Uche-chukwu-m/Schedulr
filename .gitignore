@@ -6,3 +6,4 @@ frontend/.gitignore
 pack.json
 .env
 !README.md
+backend/__pycache__
